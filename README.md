@@ -2,6 +2,8 @@
 
 Docoptc will be a compiler for the [Docopt syntax](http://docopt.org/). Unlike most Docopt implementations, Docoptc is meant to be used at building time to generate command-line arguments parsing code in virtually any target language. 
 
+I'm writing DocOptC to learn Haskell, so don't expect any seriously usable code anytime soon.
+
 I'm currently planning the following features, in possible order of implementation:
 
  1. Full support for the DocOpt syntax.
