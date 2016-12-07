@@ -3,15 +3,28 @@ This module provides an abstract representation of a program's command-line opti
 > module Text.Docoptc.Types where
 
 > import Data.List (intercalate)
+> import qualified Data.Map as Map
 
-We'll distinguish three types of entities: [options](#options) (-o, --o), [positional arguments](#positionals) and [literal (sub)commands](#commands), and. We'll refer to them collectively as *parameters*.
+We'll distinguish three types of entities: *options* (`-o`, `--`o),
+*positional arguments*, and literal (sub)commands. We'll refer to them
+collectively as *parameters*.
+
+The extended syntax, as stated in design notes, may know more than
+these, but is not yet implemented.
 
 Parameters
 ==========
 
-An Parameter is thus represented as a partially recursive algebraic type:
+We first name a simple type to describe an option flag. It is a simple
+wrapper around a string, a char, or both
 
-> data Parameter =
+> data OptionName = Long LongForm | Short ShortForm | Combined ShortForm LongForm
+> type ShortForm = Char
+> type LongForm = String
+
+An Parameter is then represented as a partially recursive algebraic type:
+
+> data Parameter = 
 >       Option OptionName (Maybe OptionArg)
 >     | Positional String
 >     | Command String
@@ -20,20 +33,32 @@ An Parameter is thus represented as a partially recursive algebraic type:
 >     | Mutex [Parameter]
 >     | MutImp [Parameter]
 >     | Any
+>
+> data OptionArg = OptionArg {
+>      optionArgName :: String
+>    , optionArgDefault :: Maybe String
+>      }
 
-> data OptionArg = OptionArg {optionArgName :: String, optionArgDefault :: Maybe String}
+This type thus represents everything the DocOpt syntax is able to
+express: the three fundamental constructors are Option, Positional and
+Command. An option may allow an argument, with a name, and a possible
+default value (hence the nested `Maybe`s). The meaning of the two
+next constructors should be transparent as well; if not, refer to the
+DocOpt documentation. The latter three may be a bit obscure:
 
-> data OptionName = Long LongForm | Short ShortForm | Combined ShortForm LongForm
-> type ShortForm = Char
-> type LongForm = String
+ * `Mutex` (Mutual exclusion) models the `arg | arg` construct
 
-This type thus represents everything the DocOpt syntax is able to express: the three fundamental types are Option, Positional and Command. An option may allow an argument, with a name, and a possible default value.
+ * `MutImp` (standing for Mutual Implication) partially models the
+meaning of parentheses in the syntax: indicating that all of its
+members must be present. It represents constructs such as `[(<arg1>
+<arg2>)]`.
 
-The meaning of the three next constructors should be transparent; if not, refer to the DocOpt documentation. The latter two may be a bit obscure:
+    In the Docopt syntax, parentheses are also used to restrict the scope
+of `|`. This is handled at the parser level.
 
- * `MutImp` (standing for Mutual Implication) partially models the meaning of parentheses in the syntax: indicating that all of its members must be present. It represents constructs such as `[(<arg1> <arg2>)]`,
-
- * `Any` simply represents the syntax element `[options]`, and means that any option defined but not explicitely present in the usage pattern is allowed.
+ * `Any` represents the syntax element `[options]`, and means that any
+option defined but not explicitely present in the usage pattern is
+allowed.
 
 `show` is implemented as to output parsable DocOpt syntax:
 
@@ -57,13 +82,33 @@ The meaning of the three next constructors should be transparent; if not, refer 
 > usageShow (Combined x _) = show $ Short x
 > usageShow x = show x
 
-> newtype Usage = Usage [Parameter]
+Storing Options
+===============
+
+We keep an `Option` store as two `Map`s, mapping from their short and long forms.
+
+> type LongOptionsStore = Map.Map String Parameter
+> type ShortOptionsStore = Map.Map Char Parameter
+
+Usage patterns
+==============
+
+A usage pattern (one line of the "usage:" section of the help page, in the syntax) is simply a list of parameters:
+
+> data Usage = Usage {
+>     usagePattern :: [Parameter]
+>   , unusedParameters :: [Parameter]
+> }
+
+We hold a list of unused parameters, for consumption by `Any` (`[options]`)
 
 > instance Show Usage where
->     show (Usage xs) = showSeparatedList " " xs
+>     show (Usage xs _) = showSeparatedList " " xs
+
+The set of usages patterns
 
 > newtype Usages = Usages [Usage]
-
+>
 > instance Show Usages where
 >     show (Usages xs) = showSeparatedList "\n" xs
 

@@ -1,0 +1,33 @@
+Compile Docopt help screens to code
+
+Usage:
+  docoptc [options] -o FILE [INPUT]
+  docoptc [options] -l LANG [INPUT]
+
+Input/output options:
+  -o FILE							§ Write output to FILE
+  -l LANG							§ Specify output language (see --list-languages). If absent, uses -o file's extension.
+
+Syntax extensions:
+  -X, --extension=EXTENSION			§ Activate an extension
+
+Available extensions:
+  all								§ Meta extension to activate full extended syntax
+  Rendering:
+    tabularize						§ Tabularize option descriptions
+	  --tabularize-symbol=SYMBOL    § Tab mark symbol [default: §]
+    wrap							§ Wrap lines
+	  --wrap-length=LENGTH			§ Wrap at LENGTH [default=automatic] [@ type: Either(Integer, Literal "automatic")]
+  Syntax:
+    multipart						§ 
+    transargs						§ Automatic arguments renaming and merging
+  Misc:
+    i18n							§ Facilitate localization of help pages [implies: multipart]
+
+Parsing extensions:
+
+  -T, --tabularize [CHARACTER]		§ Tabularize option descriptions at CHARACTER [default:      § ]
+  -W, --wrap [LENGTH]				§ Wrap at LENGTH [default: 72]
+
+Other options:
+  --list-languages					§ Print a list of available output languages.
