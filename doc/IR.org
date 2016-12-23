@@ -1,0 +1,51 @@
+#+TITLE: Code generation
+
+/Use an intermediate, abstract code representation that can be translated into actual codes for different languages./
+
+Parsing options is a relatively trivial task, which may be performed in strikingly similar ways in various languages.
+
+DocOptC's code generation will then be built as a three-step process:
+
+ 1. The =--help= screen is parsed and analysed.
+
+ 2. A language-agnostic algorithm is generated, which could-be considered in-memory pseudocode. This algorithm is expressed in an intermediate representation syntax formally represented in an Haskell type.  There may be more than one IR, but there should be as few as possible, and they should be as generic as possible. By default, there could be two of them: procedural (with optional OOP) and functional.  The actual AST generator is picked by the chosen target language: Python and C or C++ will require procedural pseudocode, Haskell, Erlang or Scala will pick the functional generator.
+
+ 3. The generated, in-memory pseudocode is then translated to actual, compilable (or interpretable) code.
+
+As much as possible, translation should be a simple matter of replacing constructs and correctly placing parameters. Eg, the construict =PARSE_FUNCTION { functionName :: String, functionBody :: IR }= could be translated by the C generator as =docoptc_args * {functionName} (int argc, char * argv[])= and in Python by =def {functionName} (args = sys.argv):=. Body expansion will automatically add braces/indent as defined by the language.
+
+Adding a target language would then mean two steps: a) choosing a pseudo-code generator, and b) writing a series of translations between AST elements and actual code.
+
+The following usage pattern for the imaginary =tig= program:
+
+#+BEGIN_EXAMPLE
+    Usage:
+      tig [-v|-q] [FILE ...]
+
+    Options:
+      -v, --verbose    Be verbose.
+      -q, --quiet      Be quiet.
+#+END_EXAMPLE
+
+May then produce the following AST (LISP-like pseudo-syntax, =BLOCK= is
+=progn=)
+
+#+BEGIN_EXAMPLE
+IterateArgsIndexes "i"              # for (i = 1; i<argc; i++)
+
+TraverseArgs "arg"
+    If InState "-o"
+        If Matches "arg" (Arg "-v")
+            StateAppend (Seen "-v")
+            If StateContains (Seen "-q")
+                Fail MutexViolation ("-v" "-q")
+            StoreWrite ("verbosity" (Add 1 (StoreRead "verbosity")))
+        ElseIf ArgMatches (Arg "-o")
+            # -o expects at least an argument
+            StateEnter "-o"
+
+
+
+#+END_EXAMPLE
+
+A C generator may translate DECLARE_TARGET_MAP to =typedef struct=, translate names from =<dir>= to =DIR= and =--verbose= to =__verbose=, where a Python translator may init an =object= and a Haskell one either create a =Map= or a new type.

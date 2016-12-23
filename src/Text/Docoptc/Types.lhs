@@ -22,18 +22,26 @@ wrapper around a string, a char, or both
 > type ShortForm = Char
 > type LongForm = String
 
-An Parameter is then represented as a partially recursive algebraic type:
+A Parameter is then represented as a partially recursive type:
 
-> data Parameter = 
+> data Parameter =
 >       Option OptionName (Maybe OptionArg)
 >     | Positional String
 >     | Command String
 >     | Optional Parameter
 >     | Repeatable Parameter
+
+`Mutex` (Mutual exclusion) models the `arg | arg` construct
+
 >     | Mutex [Parameter]
+
+`MutImp` (Mutual Implication) partially models the meaning of
+parentheses in the syntax: indicating that all of its members must be
+present. It represents constructs such as `[(<arg1> <arg2>)]`.
+
 >     | MutImp [Parameter]
 >     | Any
->
+
 > data OptionArg = OptionArg {
 >      optionArgName :: String
 >    , optionArgDefault :: Maybe String
@@ -46,12 +54,8 @@ default value (hence the nested `Maybe`s). The meaning of the two
 next constructors should be transparent as well; if not, refer to the
 DocOpt documentation. The latter three may be a bit obscure:
 
- * `Mutex` (Mutual exclusion) models the `arg | arg` construct
+ *
 
- * `MutImp` (standing for Mutual Implication) partially models the
-meaning of parentheses in the syntax: indicating that all of its
-members must be present. It represents constructs such as `[(<arg1>
-<arg2>)]`.
 
     In the Docopt syntax, parentheses are also used to restrict the scope
 of `|`. This is handled at the parser level.
