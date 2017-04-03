@@ -112,7 +112,7 @@ We hold a list of unused parameters, for consumption by `Any` (`[options]`)
 The set of usages patterns
 
 > newtype Usages = Usages [Usage]
->
+
 > instance Show Usages where
 >     show (Usages xs) = showSeparatedList "\n" xs
 
