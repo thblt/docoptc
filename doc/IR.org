@@ -43,9 +43,6 @@ TraverseArgs "arg"
         ElseIf ArgMatches (Arg "-o")
             # -o expects at least an argument
             StateEnter "-o"
-
-
-
 #+END_EXAMPLE
 
 A C generator may translate DECLARE_TARGET_MAP to =typedef struct=, translate names from =<dir>= to =DIR= and =--verbose= to =__verbose=, where a Python translator may init an =object= and a Haskell one either create a =Map= or a new type.
